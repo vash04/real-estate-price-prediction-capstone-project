@@ -1,0 +1,7 @@
+# Ignore local model and data pickles
+df.pkl
+pipeline.pkl
+
+# Python cache
+__pycache__/
+*.py[cod]
