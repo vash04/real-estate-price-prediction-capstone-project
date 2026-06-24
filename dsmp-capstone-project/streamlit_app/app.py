@@ -73,8 +73,7 @@ def main() -> None:
     st.set_page_config(page_title="Gurgaon Real Estate Price Prediction", page_icon="🏠", layout="centered")
     st.title("Gurgaon Real Estate Price Prediction")
     st.write(
-        "This app predicts Gurgaon real estate prices (in Crores). Place `df.pkl` and `pipeline.pkl` in the repository root or the streamlit_app folder."
-    )
+        "This app predicts Gurgaon real estate prices (in Crores)." )
 
     data_path = find_file(DATA_FILE_NAME)
     model_path = find_file(MODEL_FILE_NAME)
