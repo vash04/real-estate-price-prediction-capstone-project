@@ -6,6 +6,7 @@ import streamlit as st
 
 DATA_FILE = Path("df.pkl")
 MODEL_FILE = Path("pipeline.pkl")
+PREDICTION_RANGE_DELTA = 0.22
 
 
 @st.cache_data
@@ -107,7 +108,10 @@ def main() -> None:
             input_df = pd.DataFrame([user_inputs])
             prediction = model.predict(input_df)
             price = float(prediction[0])
+            lower = price - PREDICTION_RANGE_DELTA
+            upper = price + PREDICTION_RANGE_DELTA
             st.success(f"Estimated price: ₹{price:,.2f}")
+            st.info(f"Prediction range: ₹{lower:,.2f} to ₹{upper:,.2f}")
             st.write("Model input:", input_df)
         except Exception as exc:
             st.error(f"Prediction failed: {exc}")

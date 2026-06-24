@@ -9,6 +9,7 @@ REPO_ROOT = APP_DIR.parent
 SEARCH_PATHS = [APP_DIR, REPO_ROOT, REPO_ROOT.parent, Path.cwd()]
 DATA_FILE_NAME = "df.pkl"
 MODEL_FILE_NAME = "pipeline.pkl"
+PREDICTION_RANGE_DELTA = 0.22
 
 
 def find_file(name: str) -> Path | None:
@@ -72,16 +73,16 @@ def main() -> None:
     st.set_page_config(page_title="Gurgaon Real Estate Price Prediction", page_icon="🏠", layout="centered")
     st.title("Gurgaon Real Estate Price Prediction")
     st.write(
-        "Yeh app Gurgaon ke real estate price prediction ke liye banaaya gaya hai. `df.pkl` aur `pipeline.pkl` file ko repo root ya streamlit_app folder mein rakho."
+        "This app predicts Gurgaon real estate prices. Place `df.pkl` and `pipeline.pkl` in the repository root or the streamlit_app folder."
     )
 
     data_path = find_file(DATA_FILE_NAME)
     model_path = find_file(MODEL_FILE_NAME)
 
     if data_path is None:
-        st.warning("`df.pkl` nahi mila. Is file ko repo root ya streamlit_app folder mein copy karo.")
+        st.warning("`df.pkl` not found. Copy this file into the repository root or the streamlit_app folder.")
     if model_path is None:
-        st.warning("`pipeline.pkl` nahi mila. Is file ko repo root ya streamlit_app folder mein copy karo.")
+        st.warning("`pipeline.pkl` not found. Copy this file into the repository root or the streamlit_app folder.")
 
     data = None
     model = None
@@ -90,13 +91,13 @@ def main() -> None:
         try:
             data = load_dataframe(data_path)
         except Exception as exc:
-            st.error(f"df load karne mein error aaya: {exc}")
+            st.error(f"Error loading df.pkl: {exc}")
 
     if model_path is not None:
         try:
             model = load_pipeline(model_path)
         except Exception as exc:
-            st.error(f"pipeline load karne mein error aaya: {exc}")
+            st.error(f"Error loading pipeline.pkl: {exc}")
 
     if data is not None:
         with st.expander("Dataset preview"):
@@ -106,10 +107,10 @@ def main() -> None:
 
     feature_names = infer_feature_names(data, model)
     if not feature_names:
-        st.warning("Input features infer nahi ho paayi. Ensure `pipeline.pkl` mein `feature_names_in_` ho ya `df.pkl` mein features available ho.")
+        st.warning("Unable to infer input features. Make sure `pipeline.pkl` exposes `feature_names_in_` or that `df.pkl` contains feature columns.")
         return
 
-    st.subheader("Feature values do")
+    st.subheader("Enter feature values")
     with st.form("prediction_form"):
         user_inputs = collect_inputs(feature_names, data)
         submit = st.form_submit_button("Predict Price")
@@ -119,19 +120,22 @@ def main() -> None:
             input_df = pd.DataFrame([user_inputs])
             prediction = model.predict(input_df)
             price = float(prediction[0])
+            lower = price - PREDICTION_RANGE_DELTA
+            upper = price + PREDICTION_RANGE_DELTA
             st.success(f"Estimated price: ₹{price:,.2f}")
+            st.info(f"Prediction range: ₹{lower:,.2f} to ₹{upper:,.2f}")
             st.write("Model input:", input_df)
         except Exception as exc:
             st.error(f"Prediction failed: {exc}")
             st.write("Input:", user_inputs)
             st.write("Model:", model)
 
-    with st.expander("Model info"):
+    with st.expander("Model information"):
         if model is not None:
             st.write(type(model))
             st.write(str(model))
         else:
-            st.write("Model loaded nahi hua.")
+            st.write("No model loaded.")
 
 
 if __name__ == "__main__":
